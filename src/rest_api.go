@@ -63,6 +63,7 @@ func main() {
 		rest.Get("/users", users.GetUsers),
 		rest.Get("/users/:id", users.GetUserById),
 		rest.Post("/users", users.AddUsers),
+		rest.Put("/users/:id", users.EditUser),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -111,5 +112,30 @@ func (u *Users) AddUsers(w rest.ResponseWriter, r *rest.Request) {
 	user.Id = id
 	u.Store[fmt.Sprintf("%d", id)] = &user
 	u.Unlock()
-	w.WriteJson(&user)
+	w.WriteJson(user.Id)
+}
+
+func (u *Users) EditUser(w rest.ResponseWriter, r *rest.Request) {
+	id := r.PathParam("id")
+	u.Lock()
+	if u.Store[id] == nil {
+		rest.NotFound(w, r)
+		u.Unlock()
+		return
+	}
+	var user *User
+	if u.Store[id] != nil {
+		user = &User{}
+		*user = *u.Store[id]
+	}
+
+	err := r.DecodeJsonPayload(user)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		u.RUnlock()
+		return
+	}
+	u.Store[id] = user
+	u.Unlock()
+	w.WriteJson(user)
 }

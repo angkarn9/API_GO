@@ -71,7 +71,7 @@ func makeCustomRequest(method string, urlStr string, payload interface{}, header
 	return r
 }
 
-func TestCallGetUsers(t *testing.T) {
+func TestGetUsers(t *testing.T) {
 	users := Users{
 		Store: map[string]*User{},
 	}
@@ -239,7 +239,7 @@ func TestCallGetUsers(t *testing.T) {
 ]`)
 }
 
-func TestCallGetUserById(t *testing.T) {
+func TestGetUserById(t *testing.T) {
 	users := Users{
 		Store: map[string]*User{},
 	}
@@ -305,4 +305,96 @@ func TestCallGetUserById(t *testing.T) {
   },
   "createDate": "2017-03-04T05:00:00Z"
 }`)
+}
+
+func TestAddUsers(t *testing.T) {
+	users := Users{
+		Store: map[string]*User{},
+	}
+
+	user := User{
+		Name:     "Leanne Graham",
+		Username: "Bret",
+		Email:    "Sincere@april.biz",
+		Address: Address{
+			Street:  "Kulas Light",
+			Suite:   "Apt. 556",
+			City:    "Gwenborough",
+			Zipcode: "92998-3874",
+			Geo: Geo{
+				Lat: "-37.3159",
+				Lng: "81.1496",
+			},
+		},
+		Phone:   "1-770-736-8031 x56442",
+		Website: "hildegard.org",
+		Company: Company{
+			Name:        "Romaguera-Crona",
+			CatchPhrase: "Multi-layered client-server neural-net",
+			Bs:          "harness real-time e-markets",
+		},
+	}
+
+	testApi := TestSimpleApi{
+		Url:     "/users",
+		Func:    users.AddUsers,
+		Method:  "POST",
+		ReqUrl:  "/users",
+		Header:  map[string]string{},
+		Payload: user,
+	}
+
+	recorded := testApi.RunRequest(t)
+
+	recorded.CodeIs(200)
+	recorded.ContentTypeIsJson()
+	recorded.BodyIs(`0`)
+}
+
+func TestEditUser(t *testing.T) {
+	users := Users{
+		Store: map[string]*User{},
+	}
+
+	users.Store["1"] = &User{
+		Id:       1,
+		Name:     "Leanne Graham",
+		Username: "Bret",
+		Email:    "Sincere@april.biz",
+		Address: Address{
+			Street:  "Kulas Light",
+			Suite:   "Apt. 556",
+			City:    "Gwenborough",
+			Zipcode: "92998-3874",
+			Geo: Geo{
+				Lat: "-37.3159",
+				Lng: "81.1496",
+			},
+		},
+		Phone:   "1-770-736-8031 x56442",
+		Website: "hildegard.org",
+		Company: Company{
+			Name:        "Romaguera-Crona",
+			CatchPhrase: "Multi-layered client-server neural-net",
+			Bs:          "harness real-time e-markets",
+		},
+		CreateDate: time.Date(2017, 3, 4, 05, 00, 00, 000, time.UTC),
+	}
+
+	testApi := TestSimpleApi{
+		Url:    "/users/:id",
+		Func:   users.EditUser,
+		Method: "PUT",
+		ReqUrl: "/users/1",
+		Header: map[string]string{},
+		Payload: User{
+			Name:  "Leanne Graham",
+			Phone: "1-123-433-9999",
+		},
+	}
+
+	recorded := testApi.RunRequest(t)
+
+	recorded.CodeIs(200)
+	recorded.ContentTypeIsJson()
 }
